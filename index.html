@@ -1,98 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8">
-<title>LIFF宿題管理</title>
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <meta charset="UTF-8">
+  <title>宿題管理くん</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body{
+      font-family: sans-serif;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+      font-size:20px;
+    }
+  </style>
 </head>
 <body>
-
-<div id="register" style="display:none">
-  <button onclick="register()">登録</button>
-</div>
-
-<div id="add" style="display:none">
-  <input id="content" placeholder="内容">
-  <input id="deadline" placeholder="期限">
-  <button onclick="addHomework()">追加</button>
-</div>
-
-<div id="complete" style="display:none">
-  <input id="row" placeholder="行番号">
-  <button onclick="completeHomework()">完了</button>
-</div>
+  読み込み中…
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbz910FJbvEKdMV-8dEGncfx2YocZHmNVeuyZHRA26c6SmqEaBEgPzwURfl1fQonvpTbpQ/exec";
-let userId = "";
 
-function show(id) {
-  document.querySelectorAll("div").forEach(d => d.style.display="none");
-  document.getElementById(id).style.display="block";
-}
+async function main(){
+  await liff.init({ liffId:"2008725002-jHJsEKRx" });
+  const userId = liff.getContext().userId;
 
-function closeLater() {
-  setTimeout(() => liff.closeWindow(), 2000);
-}
-
-async function init() {
-  await liff.init({ liffId: "2008725002-jHJsEKRx" });
-  userId = liff.getContext().userId;
-
-  const res = await fetch(GAS_URL, {
-    method: "POST",
-    body: JSON.stringify({ type:"checkRegister", userId })
+  const res = await fetch(GAS_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ type:"checkRegister", userId })
   });
-  const json = await res.json();
+  const data = await res.json();
 
-  const page = new URLSearchParams(location.search).get("page") || "register";
-
-  if (!json.registered) {
-    show("register");
-    return;
+  if(data.registered){
+    location.href = "add.html";
+  }else{
+    location.href = "register.html";
   }
-
-  show(page);
 }
-
-async function register() {
-  await fetch(GAS_URL, {
-    method:"POST",
-    body: JSON.stringify({ type:"register", userId })
-  });
-  alert("登録完了");
-  closeLater();
-}
-
-async function addHomework() {
-  await fetch(GAS_URL, {
-    method:"POST",
-    body: JSON.stringify({
-      type:"addHomework",
-      userId,
-      content: content.value,
-      deadline: deadline.value
-    })
-  });
-  alert("追加完了");
-  closeLater();
-}
-
-async function completeHomework() {
-  await fetch(GAS_URL, {
-    method:"POST",
-    body: JSON.stringify({
-      type:"completeHomework",
-      userId,
-      row: row.value
-    })
-  });
-  alert("完了");
-  closeLater();
-}
-
-init();
+main();
 </script>
 </body>
 </html>
-
