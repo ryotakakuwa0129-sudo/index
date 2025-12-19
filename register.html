@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ユーザー登録</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+body{
+  font-family:sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+.card{
+  border:2px solid #333;
+  padding:30px;
+  text-align:center;
+  width:80%;
+}
+button{
+  font-size:20px;
+  padding:10px 20px;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>宿題管理を始めよう</h1>
+  <button onclick="register()">登録する</button>
+</div>
+
+<script>
+const GAS_URL="【GAS WebApp URL】";
+
+async function register(){
+  await liff.init({ liffId:"2008725002-jHJsEKRx" });
+  const userId=liff.getContext().userId;
+
+  await fetch(GAS_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ type:"register", userId })
+  });
+
+  setTimeout(()=>liff.closeWindow(),2000);
+}
+</script>
+</body>
+</html>
