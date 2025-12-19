@@ -1,56 +1,130 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>LIFF宿題管理</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>LIFF宿題管理</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
-  <!-- LIFF SDK -->
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 30px;
-    }
-    button {
-      font-size: 18px;
-      padding: 10px 20px;
-      margin-top: 20px;
-    }
-  </style>
+<style>
+body {
+  font-family: sans-serif;
+  text-align: center;
+  background: #f5f5f5;
+}
+h1 { font-size: 28px; }
+.box {
+  background: white;
+  margin: 20px auto;
+  padding: 20px;
+  width: 90%;
+  max-width: 420px;
+  border-radius: 12px;
+}
+button {
+  font-size: 18px;
+  padding: 12px;
+  width: 100%;
+  margin-top: 10px;
+}
+input, textarea, select {
+  font-size: 16px;
+  width: 100%;
+  padding: 10px;
+}
+</style>
 </head>
 
 <body>
-  <h1>LIFF宿題管理</h1>
+<h1>📘 LIFF宿題管理</h1>
 
-  <div id="status">初期化中...</div>
+<div id="register" class="box">
+  <p>最初にユーザー登録をしてください</p>
+  <button onclick="register()">登録する</button>
+</div>
 
-  <button onclick="test()">テストボタン</button>
+<div id="add" class="box" style="display:none">
+  <h2>宿題追加</h2>
+  <select id="subject">
+    <option>国語</option><option>数学</option><option>英語</option>
+    <option>理科</option><option>社会</option><option>その他</option>
+  </select>
+  <textarea id="content" placeholder="宿題内容"></textarea>
+  <input type="date" id="deadline">
+  <button onclick="addHomework()">追加</button>
+</div>
 
-  <script>
-    const LIFF_ID = "2008725002-jHJsEKRx";
+<div id="complete" class="box" style="display:none">
+  <h2>宿題完了登録</h2>
+  <textarea id="done" placeholder="完了した宿題（改行）"></textarea>
+  <button onclick="complete()">送信</button>
+</div>
 
-    async function init() {
-      try {
-        await liff.init({ liffId: LIFF_ID });
-        document.getElementById("status").innerText = "LIFF 初期化成功";
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbz910FJbvEKdMV-8dEGncfx2YocZHmNVeuyZHRA26c6SmqEaBEgPzwURfl1fQonvpTbpQ/exec";
+let userId = "";
 
-        console.log("LIFF OK");
-      } catch (e) {
-        document.getElementById("status").innerText = "LIFF 初期化失敗";
-        console.error(e);
-      }
-    }
+async function init() {
+  await liff.init({ liffId: "2008725002-jHJsEKRx" });
+  userId = liff.getContext().userId;
 
-    function test() {
-      alert("JSは動いています");
-    }
+  const res = await fetch(GAS_URL, {
+    method: "POST",
+    body: JSON.stringify({ type:"checkRegister", userId })
+  });
+  const json = await res.json();
 
-    init();
-  </script>
+  const page = new URLSearchParams(location.search).get("page") || "register";
+
+  if (!json.registered) {
+    show("register");
+  } else {
+    show(page);
+  }
+}
+
+function show(id) {
+  ["register","add","complete"].forEach(v=>{
+    document.getElementById(v).style.display="none";
+  });
+  document.getElementById(id).style.display="block";
+}
+
+async function register() {
+  await fetch(GAS_URL, {
+    method:"POST",
+    body:JSON.stringify({ type:"register", userId })
+  });
+  alert("登録完了！");
+  show("add");
+}
+
+async function addHomework() {
+  await fetch(GAS_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      type:"addHomework",
+      subject:subject.value,
+      content:content.value,
+      deadline:deadline.value
+    })
+  });
+  alert("追加しました！");
+}
+
+async function complete() {
+  const list = done.value.split("\n").filter(v=>v);
+  await fetch(GAS_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      type:"complete",
+      userId,
+      done:list
+    })
+  });
+  alert("完了登録しました！");
+}
+
+init();
+</script>
 </body>
 </html>
-
