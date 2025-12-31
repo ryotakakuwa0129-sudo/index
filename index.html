@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>LIFF宿題管理</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LIFF 宿題管理</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
+<!-- LIFF SDK -->
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <style>
@@ -13,197 +13,158 @@ body {
   font-family: system-ui, sans-serif;
   background: #f5f7fb;
   margin: 0;
+  padding: 0;
 }
-
 .container {
   max-width: 420px;
-  margin: auto;
-  padding: 20px;
+  margin: 0 auto;
+  padding: 24px;
   text-align: center;
 }
-
-.card {
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 8px 20px rgba(0,0,0,.08);
-}
-
-h1 {
-  font-size: 24px;
-  margin-bottom: 16px;
-}
-
+h1 { font-size: 22px; margin-bottom: 16px; }
 label {
   display: block;
-  text-align: left;
   margin-top: 14px;
+  text-align: left;
   font-weight: bold;
 }
-
-input, select, textarea {
+input, select, textarea, button {
   width: 100%;
   padding: 10px;
-  font-size: 16px;
   margin-top: 6px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+  font-size: 16px;
 }
-
 button {
-  width: 100%;
-  margin-top: 20px;
-  padding: 14px;
-  font-size: 18px;
-  border-radius: 10px;
+  background: #06c755;
+  color: #fff;
   border: none;
-  background: #2563eb;
-  color: white;
+  border-radius: 6px;
 }
-
 .hidden { display: none; }
-
-#loading {
-  font-size: 20px;
-  padding: 40px;
-}
+#status { margin-top: 20px; }
 </style>
 </head>
 
 <body>
-
 <div class="container">
 
-  <div id="loading">読み込み中…</div>
+<h1>📘 LIFF宿題管理</h1>
 
-  <!-- 登録 -->
-  <div id="register" class="card hidden">
-    <h1>ユーザー登録</h1>
-    <p>初回のみ登録が必要です</p>
-    <button id="registerBtn">登録する</button>
-  </div>
+<div id="loading">読み込み中…</div>
 
-  <!-- 宿題追加 -->
-  <div id="add" class="card hidden">
-    <h1>宿題追加</h1>
+<div id="register" class="hidden">
+  <p>ユーザー登録が必要です</p>
+  <button id="registerBtn">登録する</button>
+</div>
 
-    <label for="subject">教科</label>
-    <select id="subject" name="subject">
-      <option>国語</option>
-      <option>数学</option>
-      <option>英語</option>
-      <option>理科</option>
-      <option>社会</option>
-      <option>美術</option>
-      <option>音楽</option>
-      <option>その他</option>
-    </select>
+<div id="homework" class="hidden">
 
-    <label for="content">内容</label>
-    <textarea id="content" name="content"></textarea>
+  <label for="subject">教科</label>
+  <select id="subject" name="subject">
+    <option>国語</option>
+    <option>数学</option>
+    <option>理科</option>
+    <option>社会</option>
+    <option>英語</option>
+    <option>美術</option>
+    <option>音楽</option>
+    <option>その他</option>
+  </select>
 
-    <label for="deadline">期限</label>
-    <input type="date" id="deadline" name="deadline">
+  <label for="content">内容</label>
+  <textarea id="content" name="content"></textarea>
 
-    <button id="addBtn">追加</button>
-  </div>
+  <label for="deadline">期限</label>
+  <input type="date" id="deadline" name="deadline"/>
+
+  <button id="addBtn">宿題を追加</button>
+</div>
+
+<div id="status"></div>
 
 </div>
 
 <script>
-/* =======================
-   設定
-======================= */
-const LIFF_ID = "2008725002-jHJsEKRx";
-const GAS_URL = "https://script.google.com/macros/s/AKfycbz910FJbvEKdMV-8dEGncfx2YocZHmNVeuyZHRA26c6SmqEaBEgPzwURfl1fQonvpTbpQ/exec";
+/* ===== 設定 ===== */
+const LIFF_ID = "あなたのLIFF_ID";
+const GAS_URL = "あなたのGAS_WEBAPP_URL";
 
-/* =======================
-   共通
-======================= */
-let userId = "";
-const qs = new URLSearchParams(location.search);
-const page = qs.get("page") || "add";
-
-function show(id){
-  document.querySelectorAll(".card").forEach(e=>e.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
+/* ===== 共通POST ===== */
+async function post(data) {
+  const res = await fetch(GAS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+  return res.json();
 }
 
-function closeLater(){
-  setTimeout(()=>liff.closeWindow(), 2000);
-}
-
-/* =======================
-   初期化
-======================= */
-async function init(){
+/* ===== 初期化 ===== */
+async function init() {
   try {
     await liff.init({ liffId: LIFF_ID });
-    userId = liff.getContext().userId;
-
-    const res = await fetch(GAS_URL, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ action:"checkUser", userId })
-    });
-    const json = await res.json();
-
-    document.getElementById("loading").style.display="none";
-
-    if(!json.registered){
-      show("register");
-    } else {
-      show(page);
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
     }
 
-  } catch(e){
-    document.getElementById("loading").innerText="初期化失敗";
+    const profile = await liff.getProfile();
+    window.USER_ID = profile.userId;
+
+    const result = await post({
+      action: "checkUser",
+      userId: USER_ID
+    });
+
+    document.getElementById("loading").classList.add("hidden");
+
+    if (result.registered) {
+      document.getElementById("homework").classList.remove("hidden");
+    } else {
+      document.getElementById("register").classList.remove("hidden");
+    }
+
+  } catch (e) {
+    document.getElementById("loading").innerText = "初期化失敗";
     console.error(e);
   }
 }
 
-/* =======================
-   登録
-======================= */
-document.getElementById("registerBtn").onclick = async ()=>{
-  try{
-    await fetch(GAS_URL,{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify({ action:"register", userId })
-    });
-    alert("登録完了！");
-    closeLater();
-  }catch(e){
-    alert("登録失敗");
-  }
+/* ===== 登録 ===== */
+document.getElementById("registerBtn").onclick = async () => {
+  await post({
+    action: "register",
+    userId: USER_ID
+  });
+  document.getElementById("register").classList.add("hidden");
+  document.getElementById("homework").classList.remove("hidden");
 };
 
-/* =======================
-   宿題追加
-======================= */
-document.getElementById("addBtn").onclick = async ()=>{
-  const data = {
-    action:"addHomework",
-    userId,
-    subject:subject.value,
-    content:content.value,
-    deadline:deadline.value
-  };
-  try{
-    await fetch(GAS_URL,{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify(data)
-    });
-    alert("追加しました！");
-    closeLater();
-  }catch(e){
-    alert("失敗");
+/* ===== 宿題追加 ===== */
+document.getElementById("addBtn").onclick = async () => {
+  const subject = document.getElementById("subject").value;
+  const content = document.getElementById("content").value;
+  const deadline = document.getElementById("deadline").value;
+
+  if (!content || !deadline) {
+    alert("内容と期限を入力してください");
+    return;
   }
+
+  await post({
+    action: "addHomework",
+    userId: USER_ID,
+    subject,
+    content,
+    deadline
+  });
+
+  document.getElementById("status").innerText = "登録完了！";
+  setTimeout(() => liff.closeWindow(), 2000);
 };
 
 init();
 </script>
 </body>
 </html>
+
