@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>宿題管理 LIFF</title>
 
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <style>
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  font-family: system-ui;
   background: #f5f6f8;
-  margin: 0;
   padding: 16px;
 }
 .card {
@@ -19,48 +18,40 @@ body {
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 16px;
-  box-shadow: 0 2px 6px rgba(0,0,0,.08);
 }
-h2 { margin-top: 0; }
-input, select, button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 8px;
-  font-size: 16px;
-}
+.hidden { display: none; }
 button {
+  width: 100%;
+  padding: 12px;
   background: #06c755;
   color: #fff;
   border: none;
   border-radius: 8px;
+  margin-top: 10px;
+}
+select, input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
 }
 .checkbox {
   display: flex;
   align-items: center;
-  margin-top: 8px;
-}
-.checkbox input {
-  width: auto;
-  margin-right: 8px;
-}
-.hidden { display: none; }
-.menu button {
-  margin-top: 12px;
+  margin-top: 6px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- メニュー -->
-<div class="card menu hidden" id="menuView">
-  <h2>📚 宿題管理</h2>
-  <button onclick="showAdd()">➕ 宿題追加</button>
-  <button onclick="showDone()">✅ 完了登録</button>
+<!-- 登録 -->
+<div id="registerCard" class="card hidden">
+  <h2>👤 ユーザー登録</h2>
+  <button onclick="register()">登録する</button>
 </div>
 
 <!-- 宿題追加 -->
-<div class="card hidden" id="addView">
+<div id="addCard" class="card hidden">
   <h2>📘 宿題追加</h2>
 
   <select id="subject">
@@ -76,179 +67,124 @@ button {
     <option value="その他">その他</option>
   </select>
 
-  <input id="homeworkText" placeholder="宿題内容" />
-  <input id="deadline" type="date" />
-
+  <input id="text" placeholder="宿題内容">
+  <input id="date" type="date">
   <button onclick="addHomework()">追加</button>
-  <button onclick="backMenu()">戻る</button>
 </div>
 
 <!-- 完了登録 -->
-<div class="card hidden" id="doneView">
+<div id="doneCard" class="card hidden">
   <h2>✅ 完了登録</h2>
   <div id="undoneList">読み込み中...</div>
   <button onclick="submitDone()">完了にする</button>
-  <button onclick="backMenu()">戻る</button>
 </div>
 
 <script>
-const LIFF_ID = "2008725002-jHJsEKRx";
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz910FJbvEKdMV-8dEGncfx2YocZHmNVeuyZHRA26c6SmqEaBEgPzwURfl1fQonvpTbpQ/exec";
+const LIFF_ID = "あなたのLIFF_ID";
+const GAS_URL = "あなたのGAS WebApp URL";
 
 let userId = "";
-let undoneHomework = [];
+let undone = [];
 
-/* --------------------
-  初期化
--------------------- */
-async function init() {
-  await liff.init({ liffId: LIFF_ID });
+function qs(id){ return document.getElementById(id); }
 
-  if (!liff.isLoggedIn()) {
-    liff.login();
-    return;
-  }
-
-  const profile = await liff.getProfile();
-  userId = profile.userId;
-
-  // 🔹 自動ユーザー登録
-  await postApi({ action: "register", userId });
-
-  showMenu();
+function show(id){
+  ["registerCard","addCard","doneCard"].forEach(i=>qs(i).classList.add("hidden"));
+  qs(id).classList.remove("hidden");
 }
 
-/* --------------------
-  画面制御
--------------------- */
-function hideAll() {
-  document.querySelectorAll(".card").forEach(v => v.classList.add("hidden"));
-}
-
-function showMenu() {
-  hideAll();
-  document.getElementById("menuView").classList.remove("hidden");
-}
-
-function showAdd() {
-  hideAll();
-  document.getElementById("addView").classList.remove("hidden");
-}
-
-async function showDone() {
-  hideAll();
-  document.getElementById("doneView").classList.remove("hidden");
-  await loadUndone();
-}
-
-function backMenu() {
-  showMenu();
-}
-
-/* --------------------
-  API 通信
--------------------- */
-async function postApi(data) {
-  await fetch(GAS_API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
+async function api(data){
+  const res = await fetch(GAS_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify(data)
   });
+  return res.text();
 }
 
-async function postApiJson(data) {
-  const res = await fetch(GAS_API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
+async function apiJson(data){
+  const res = await fetch(GAS_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify(data)
   });
-  return await res.json();
+  return res.json();
 }
 
-/* --------------------
-  宿題追加
--------------------- */
-async function addHomework() {
-  const subject = document.getElementById("subject").value;
-  const text = document.getElementById("homeworkText").value.trim();
-  const deadline = document.getElementById("deadline").value;
+async function init(){
+  try {
+    await liff.init({ liffId: LIFF_ID });
 
-  if (!subject || !text || !deadline) {
-    alert("すべて入力してください");
-    return;
+    if(!liff.isLoggedIn()){
+      liff.login();
+      return;
+    }
+
+    const p = await liff.getProfile();
+    userId = p.userId;
+
+    const params = new URLSearchParams(location.search);
+    const mode = params.get("mode") || "add";
+
+    const check = await apiJson({ action:"checkUser", userId });
+    if(!check.registered){
+      show("registerCard");
+      return;
+    }
+
+    if(mode==="done"){
+      show("doneCard");
+      loadUndone();
+    }else{
+      show("addCard");
+    }
+
+  } catch(e){
+    document.body.innerHTML = "<pre>"+e+"</pre>";
   }
+}
 
-  await postApi({
-    action: "addHomework",
+async function register(){
+  await api({ action:"register", userId });
+  liff.closeWindow();
+}
+
+async function addHomework(){
+  const s = qs("subject").value;
+  const t = qs("text").value;
+  const d = qs("date").value;
+  if(!s||!t||!d){ alert("全部入力してください"); return; }
+
+  await api({
+    action:"addHomework",
     userId,
-    subject,
-    text,
-    deadline
+    subject:s,
+    text:`${s}:${t}（期限${d}）`
   });
 
-  alert("宿題を追加しました");
-
-  document.getElementById("subject").value = "";
-  document.getElementById("homeworkText").value = "";
-  document.getElementById("deadline").value = "";
-
-  showMenu();
+  liff.closeWindow();
 }
 
-/* --------------------
-  未完了宿題取得
--------------------- */
-async function loadUndone() {
-  undoneHomework = await postApiJson({
-    action: "getUndoneHomework",
-    userId
-  });
-
-  const area = document.getElementById("undoneList");
-  area.innerHTML = "";
-
-  if (!undoneHomework || undoneHomework.length === 0) {
-    area.textContent = "未完了の宿題はありません";
-    return;
-  }
-
-  undoneHomework.forEach((t, i) => {
-    const div = document.createElement("div");
-    div.className = "checkbox";
-    div.innerHTML = `
-      <input type="checkbox" id="chk${i}">
-      <label for="chk${i}">${t}</label>
-    `;
-    area.appendChild(div);
+async function loadUndone(){
+  undone = await apiJson({ action:"getUndoneHomework", userId });
+  const area = qs("undoneList");
+  area.innerHTML="";
+  undone.forEach((t,i)=>{
+    area.innerHTML += `
+      <div class="checkbox">
+        <input type="checkbox" id="c${i}">
+        <label for="c${i}">${t}</label>
+      </div>`;
   });
 }
 
-/* --------------------
-  完了登録
--------------------- */
-async function submitDone() {
-  const checks = document.querySelectorAll("input[type=checkbox]");
-  const done = [];
-
-  checks.forEach((c, i) => {
-    if (c.checked) done.push(undoneHomework[i]);
-  });
-
-  if (!done.length) {
-    alert("完了する宿題を選んでください");
-    return;
+async function submitDone(){
+  for(let i=0;i<undone.length;i++){
+    if(qs("c"+i)?.checked){
+      await api({ action:"doneHomework", userId, text:undone[i] });
+    }
   }
-
-  for (const text of done) {
-    await postApi({
-      action: "doneHomework",
-      userId,
-      text
-    });
-  }
-
-  alert("完了登録しました");
-  showMenu();
+  liff.closeWindow();
 }
 
 init();
