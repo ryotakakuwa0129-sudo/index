@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>宿題追加</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+
+<h2>➕ 宿題追加</h2>
+
+<p>教科</p>
+<div id="subjects"></div>
+
+<input id="text" placeholder="内容">
+<input id="date" type="date">
+
+<button onclick="addHomework()">追加</button>
+<button onclick="location.href='index.html'">戻る</button>
+
+<script>
+liffInit();
+
+let subject = "";
+const list = ["国語","数学","英語","理科","社会","音楽","美術","保体"];
+
+const box = document.getElementById("subjects");
+list.forEach(s => {
+  const b = document.createElement("button");
+  b.innerText = s;
+  b.onclick = () => subject = s;
+  box.appendChild(b);
+});
+
+async function addHomework() {
+  const text = document.getElementById("text").value;
+  const date = document.getElementById("date").value;
+
+  if (!subject || !text || !date) {
+    alert("未入力があります");
+    return;
+  }
+
+  await post({
+    action: "addHomework",
+    userId,
+    subject,
+    text,
+    date
+  });
+
+  alert("追加しました");
+  location.href = "index.html";
+}
+</script>
+</body>
+</html>
