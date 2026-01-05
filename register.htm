@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ユーザー登録</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+body { font-family: sans-serif; padding: 12px; }
+button { padding: 8px; width: 100%; margin-top: 12px; }
+</style>
+</head>
+<body>
+<h2>ユーザー登録</h2>
+<p>登録するには以下のボタンを押してください。</p>
+<button id="registerBtn">登録する</button>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbz910FJbvEKdMV-8dEGncfx2YocZHmNVeuyZHRA26c6SmqEaBEgPzwURfl1fQonvpTbpQ/exec";
+const LIFF_ID = "2008725002-jHJsEKRx";
+
+let userId = "";
+
+async function init() {
+  await liff.init({ liffId: LIFF_ID });
+  if (!liff.isLoggedIn()) liff.login();
+  userId = liff.getContext().userId;
+}
+
+document.getElementById('registerBtn').addEventListener('click', async () => {
+  await fetch(GAS_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({action: 'register', userId})
+  });
+  alert('登録完了しました');
+  liff.closeWindow();
+});
+
+init();
+</script>
+</body>
+</html>
+
+
+window.onload = init;
+</script>
+</body>
+</html>
