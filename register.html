@@ -3,48 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <title>ユーザー登録</title>
+<link rel="stylesheet" href="style.css">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<style>
-body{font-family:sans-serif;text-align:center;padding:20px;}
-button{padding:10px 20px;margin:10px;font-size:16px;}
-.fade-in{animation:fadeIn 0.5s;}
-@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-</style>
+<script src="liff.js"></script>
 </head>
-<body class="fade-in">
-<h2>ユーザー登録</h2>
-<p>下のボタンを押すと登録されます</p>
-<button id="registerBtn">登録する</button>
-
+<body>
+<div class="container">
+  <h1>ユーザー登録</h1>
+  <p>下のボタンを押して登録してください。</p>
+  <button id="registerBtn">登録する</button>
+  <p id="status"></p>
+</div>
 <script>
-let liffId = "2008725002-jHJsEKRx"; // ここにLIFF IDを設定
-
-async function main() {
-  await liff.init({ liffId });
-  const userId = liff.getContext().userId;
-
-  // 登録済みなら自動で閉じる
-  const res = await fetch(liff.getOS()+'/liffApi',{ 
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ action:'checkUser', userId })
-  });
-  const data = await res.json();
-  if(data.registered){ liff.closeWindow(); }
-}
-
-document.getElementById('registerBtn').addEventListener('click', async()=>{
-  const userId = liff.getContext().userId;
-  await fetch(liff.getOS()+'/liffApi',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ action:'register', userId })
-  });
-  alert('登録完了！');
-  liff.closeWindow();
+document.getElementById('registerBtn').addEventListener('click', async () => {
+  const userId = await getLiffUserId();
+  const res = await liffApiCall({ action: 'register', userId });
+  if (res.ok) {
+    document.getElementById('status').innerText = '登録完了！この画面は閉じます…';
+    setTimeout(() => liff.closeWindow(), 1500);
+  }
 });
-
-main();
 </script>
 </body>
 </html>
