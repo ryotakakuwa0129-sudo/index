@@ -1,20 +1,136 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-<meta charset="utf-8">
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <meta charset="UTF-8" />
+  <title>宿題管理</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 12px; }
+    button { margin: 6px 0; padding: 8px; width: 100%; }
+    .hw { border-bottom: 1px solid #ccc; padding: 6px 0; }
+  </style>
 </head>
 <body>
+  <h2>📘 宿題管理</h2>
+
+  <div id="status">読み込み中...</div>
+
+  <h3>➕ 宿題追加</h3>
+  <input id="subject" placeholder="教科"><br>
+  <input id="text" placeholder="内容"><br>
+  <input id="date" type="date"><br>
+  <button onclick="addHomework()">追加</button>
+
+  <h3>☑ 未完了宿題</h3>
+  <div id="list"></div>
+  <button onclick="doneHomework()">完了にする</button>
+
 <script>
-(async () => {
+const GAS_URL = "https://script.google.com/macros/s/◯◯◯/exec";
+const LIFF_ID = "◯◯◯";
+
+let userId = "";
+
+async function init() {
   try {
-    document.body.innerText = "loading...";
-    await liff.init({ liffId: "2008725002-jHJsEKRx" });
-    document.body.innerText = "LIFF INIT OK";
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
+    }
+
+    userId = liff.getContext().userId;
+    document.getElementById("status").innerText = "ログイン中";
+
+    await checkUser();
+    await loadUndone();
   } catch (e) {
-    document.body.innerText = e.toString();
+    document.getElementById("status").innerText = "初期化エラー";
+    console.error(e);
   }
-})();
+}
+
+async function post(data) {
+  const res = await fetch(GAS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+  return res.json();
+}
+
+async function checkUser() {
+  const res = await post({ action: "checkUser", userId });
+  if (!res.registered) {
+    await post({ action: "register", userId });
+  }
+}
+
+async function addHomework() {
+  const subject = subject.value;
+  const text = document.getElementById("text").value;
+  const date = document.getElementById("date").value;
+
+  if (!subject || !text || !date) {
+    alert("全部入力してください");
+    return;
+  }
+
+  await post({
+    action: "addHomework",
+    userId,
+    subject,
+    text,
+    date
+  });
+
+  await loadUndone();
+  alert("追加しました");
+}
+
+async function loadUndone() {
+  const res = await post({
+    action: "getUndoneHomework",
+    userId
+  });
+
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  res.forEach((t, i) => {
+    const div = document.createElement("div");
+    div.className = "hw";
+    div.innerHTML = `<label>
+      <input type="checkbox" value="${t}">
+      ${t}
+    </label>`;
+    list.appendChild(div);
+  });
+
+  document.getElementById("status").innerText = "準備完了";
+}
+
+async function doneHomework() {
+  const checked = [...document.querySelectorAll("input[type=checkbox]:checked")]
+    .map(c => c.value);
+
+  if (checked.length === 0) {
+    alert("選択してください");
+    return;
+  }
+
+  await post({
+    action: "doneHomework",
+    userId,
+    doneList: checked
+  });
+
+  await loadUndone();
+  alert("完了にしました");
+}
+
+init();
 </script>
 </body>
 </html>
