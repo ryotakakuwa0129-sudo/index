@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>宿題完了</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+
+<h2>☑ 未完了宿題</h2>
+<div id="list"></div>
+
+<button onclick="done()">完了</button>
+<button onclick="location.href='index.html'">戻る</button>
+
+<script>
+liffInit();
+
+async function load() {
+  const res = await post({ action: "getUndoneHomework", userId });
+  const list = document.getElementById("list");
+
+  res.forEach(t => {
+    list.innerHTML += `<label>
+      <input type="checkbox" value="${t}"> ${t}
+    </label><br>`;
+  });
+}
+
+async function done() {
+  const checked = [...document.querySelectorAll("input:checked")]
+    .map(c => c.value);
+
+  await post({ action: "doneHomework", userId, doneList: checked });
+  alert("完了しました");
+  location.href = "index.html";
+}
+
+load();
+</script>
+</body>
+</html>
