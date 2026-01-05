@@ -1,30 +1,31 @@
-const GAS_URL = "あなたのGAS WebApp URL";
-const LIFF_ID = "あなたのLIFF ID";
+const LIFF_ID = "2008725002-jHJsEKRx";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbz910FJbvEKdMV-8dEGncfx2YocZHmNVeuyZHRA26c6SmqEaBEgPzwURfl1fQonvpTbpQ/exec";
 
 let userId = "";
-let registered = false;
 
 async function liffInit() {
   await liff.init({ liffId: LIFF_ID });
+
   if (!liff.isLoggedIn()) {
     liff.login();
-    return;
+    throw "login";
   }
+
   userId = liff.getContext().userId;
 
-  const res = await post({ action: "checkUser", userId });
-  registered = res.registered;
-
-  if (!registered && !location.pathname.includes("register")) {
+  const r = await post({ action:"checkUser", userId });
+  if (!r.registered) {
     location.href = "register.html";
+    throw "not registered";
   }
 }
 
 async function post(data) {
-  const res = await fetch(GAS_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
+  const r = await fetch(GAS_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify(data)
   });
-  return res.json();
+  return r.json();
 }
+
