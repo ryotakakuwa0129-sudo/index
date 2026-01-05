@@ -1,43 +1,30 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title>宿題完了</title>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="common.js"></script>
-</head>
-<body>
 
-<h2>☑ 未完了宿題</h2>
-<div id="list"></div>
-
-<button onclick="done()">完了</button>
-<button onclick="location.href='index.html'">戻る</button>
+<h3>☑ 未完了の宿題</h3>
+<div id="list">読み込み中...</div>
+<button onclick="done()">完了にする</button>
 
 <script>
-liffInit();
+let undone=[];
 
-async function load() {
-  const res = await post({ action: "getUndoneHomework", userId });
-  const list = document.getElementById("list");
-
-  res.forEach(t => {
-    list.innerHTML += `<label>
-      <input type="checkbox" value="${t}"> ${t}
-    </label><br>`;
+async function start(){
+  await liffInit();
+  undone = await post({ action:"getUndoneHomework", userId });
+  list.innerHTML="";
+  undone.forEach(t=>{
+    list.innerHTML+=`
+      <label>
+        <input type="checkbox" value="${t}"> ${t}
+      </label><br>`;
   });
 }
 
-async function done() {
-  const checked = [...document.querySelectorAll("input:checked")]
-    .map(c => c.value);
-
-  await post({ action: "doneHomework", userId, doneList: checked });
-  alert("完了しました");
-  location.href = "index.html";
+async function done(){
+  const checked=[...document.querySelectorAll("input:checked")].map(c=>c.value);
+  if(!checked.length){ alert("選択してください"); return; }
+  await post({ action:"doneHomework", userId, doneList:checked });
+  liff.closeWindow();
 }
-
-load();
+start();
 </script>
-</body>
-</html>
