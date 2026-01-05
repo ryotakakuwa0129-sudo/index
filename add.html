@@ -1,104 +1,80 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>宿題追加</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <style>
-    body { font-family: sans-serif; padding: 12px; }
-    .subject-btn { margin: 4px 2px; padding: 8px; min-width: 60px; }
-    input, button { margin: 6px 0; padding: 8px; width: 100%; }
-  </style>
+<meta charset="UTF-8">
+<title>宿題追加</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+body{font-family:sans-serif;padding:20px;}
+button{margin:5px;padding:8px 12px;}
+input, select{margin:5px;padding:5px;width:200px;}
+.fade-in{animation:fadeIn 0.5s;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+</style>
 </head>
-<body>
-  <h2>📘 宿題追加</h2>
-  <div id="status">読み込み中...</div>
+<body class="fade-in">
+<h2>宿題追加</h2>
 
-  <h3>➕ 教科を選択</h3>
-  <div id="subjects">
-    <button class="subject-btn" data-subject="国語">国語</button>
-    <button class="subject-btn" data-subject="算数">算数</button>
-    <button class="subject-btn" data-subject="理科">理科</button>
-    <button class="subject-btn" data-subject="社会">社会</button>
-    <button class="subject-btn" data-subject="英語">英語</button>
-    <button class="subject-btn" data-subject="音楽">音楽</button>
-    <button class="subject-btn" data-subject="美術">美術</button>
-    <button class="subject-btn" data-subject="保体">保体</button>
-    <button class="subject-btn" data-subject="その他">その他</button>
-  </div>
+<p>教科を選択:</p>
+<div id="subjectButtons">
+  <button data-subject="国語">国語</button>
+  <button data-subject="算数">算数</button>
+  <button data-subject="理科">理科</button>
+  <button data-subject="社会">社会</button>
+  <button data-subject="英語">英語</button>
+  <button data-subject="音楽">音楽</button>
+  <button data-subject="美術">美術</button>
+  <button data-subject="保体">保体</button>
+  <button data-subject="その他">その他</button>
+</div>
 
-  <h3>内容</h3>
-  <input id="text" placeholder="宿題内容">
-  <input id="date" type="date">
-  <button id="addBtn">追加</button>
+<p>内容:</p>
+<input type="text" id="hwText" placeholder="宿題内容">
+<p>期限:</p>
+<input type="date" id="hwDate">
+<br><br>
+<button id="addBtn">追加</button>
 
 <script>
-const GAS_URL = "https://script.google.com/macros/s/AKfycbz910FJbvEKdMV-8dEGncfx2YocZHmNVeuyZHRA26c6SmqEaBEgPzwURfl1fQonvpTbpQ/exec";
-const LIFF_ID = "2008725002-jHJsEKRx";
-
+let liffId = "YOUR_LIFF_ID"; 
 let selectedSubject = "";
-let userId = "";
 
-async function init() {
-  try {
-    await liff.init({ liffId: LIFF_ID });
-    userId = liff.getContext().userId;
-    const res = await post({ action: "checkUser", userId });
-    if (!res.registered) {
-      window.location.href = "register.html"; // 未登録なら登録画面へ
-      return;
-    }
-    document.getElementById("status").innerText = "ユーザー確認済み";
-  } catch (e) {
-    console.error(e);
-    document.getElementById("status").innerText = "初期化エラー";
-  }
+async function main() {
+  await liff.init({ liffId });
+  const userId = liff.getContext().userId;
+
+  // 未登録なら登録画面に飛ばす
+  const res = await fetch(liff.getOS()+'/liffApi',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ action:'checkUser', userId })
+  });
+  const data = await res.json();
+  if(!data.registered){ window.location.href='register.html'; }
 }
 
-function post(data) {
-  return fetch(GAS_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  }).then(res => res.json());
-}
-
-// 教科ボタン選択
-document.querySelectorAll(".subject-btn").forEach(btn => {
-  btn.onclick = () => {
-    selectedSubject = btn.dataset.subject;
-    document.getElementById("status").innerText = "選択: " + selectedSubject;
-  };
+document.querySelectorAll('#subjectButtons button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{ selectedSubject=btn.dataset.subject; });
 });
 
-// 追加ボタン
-document.getElementById("addBtn").onclick = async () => {
-  const text = document.getElementById("text").value;
-  const date = document.getElementById("date").value;
+document.getElementById('addBtn').addEventListener('click', async()=>{
+  if(!selectedSubject){ alert('教科を選んでください'); return; }
+  const text = document.getElementById('hwText').value;
+  const date = document.getElementById('hwDate').value;
+  if(!text || !date){ alert('内容と期限を入力してください'); return; }
+  const userId = liff.getContext().userId;
 
-  if (!selectedSubject || !text || !date) {
-    alert("教科・内容・期限をすべて入力してください");
-    return;
-  }
-
-  const res = await post({
-    action: "addHomework",
-    userId,
-    subject: selectedSubject,
-    text,
-    date
+  await fetch(liff.getOS()+'/liffApi',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ action:'addHomework', userId, subject:selectedSubject, text, date })
   });
+  alert('宿題を追加しました');
+  liff.closeWindow();
+});
 
-  if (res.ok) {
-    alert("宿題を追加しました");
-    liff.closeWindow(); // 自動クローズ
-  } else {
-    alert("追加失敗");
-  }
-};
-
-init();
+main();
 </script>
 </body>
 </html>
+
