@@ -1,54 +1,137 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>宿題管理</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <style>
-    body { font-family: sans-serif; padding: 12px; }
-    button { margin: 6px 0; padding: 8px; width: 100%; }
-    .hw { border-bottom: 1px solid #ccc; padding: 6px 0; }
-  </style>
+<meta charset="UTF-8" />
+<title>宿題管理</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+<style>
+body {
+  font-family: sans-serif;
+  padding: 12px;
+  background: #f7f7f7;
+}
+
+h2 { margin-bottom: 4px; }
+h3 { margin-top: 18px; }
+
+#status {
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #555;
+}
+
+input, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  font-size: 16px;
+}
+
+.subject-buttons button {
+  width: auto;
+  margin: 4px;
+  background: #e0f0ff;
+  border: none;
+  border-radius: 6px;
+}
+
+.subject-buttons button.active {
+  background: #4a90e2;
+  color: white;
+}
+
+.action-btn {
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+}
+
+.done-btn {
+  background: #ff7043;
+  color: white;
+  border: none;
+  border-radius: 6px;
+}
+
+.hw {
+  background: white;
+  border-radius: 6px;
+  padding: 8px;
+  margin-top: 6px;
+}
+</style>
 </head>
+
 <body>
-  <h2>📘 宿題管理</h2>
+<h2>📘 宿題管理</h2>
+<div id="status">読み込み中…</div>
 
-  <div id="status">読み込み中...</div>
+<h3>➕ 宿題追加</h3>
 
-  <h3>➕ 宿題追加</h3>
-  <input id="subject" placeholder="教科"><br>
-  <input id="text" placeholder="内容"><br>
-  <input id="date" type="date"><br>
-  <button onclick="addHomework()">追加</button>
+<div>📚 教科を選択</div>
+<div class="subject-buttons" id="subjects"></div>
 
-  <h3>☑ 未完了宿題</h3>
-  <div id="list"></div>
-  <button onclick="doneHomework()">完了にする</button>
+<input id="text" placeholder="宿題の内容">
+<input id="date" type="date">
+
+<button class="action-btn" onclick="addHomework()">宿題を追加</button>
+
+<h3>☑ 未完了宿題</h3>
+<div id="list"></div>
+<button class="done-btn" onclick="doneHomework()">チェックした宿題を完了</button>
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbz910FJbvEKdMV-8dEGncfx2YocZHmNVeuyZHRA26c6SmqEaBEgPzwURfl1fQonvpTbpQ/exec";
 const LIFF_ID = "2008725002-jHJsEKRx";
 
 let userId = "";
+let selectedSubject = "";
+
+const SUBJECT_LIST = ["国語","数学","英語","理科","社会","その他"];
+
+document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
   try {
     await liff.init({ liffId: LIFF_ID });
+
     if (!liff.isLoggedIn()) {
       liff.login();
       return;
     }
 
-    userId = liff.getContext().userId;
-    document.getElementById("status").innerText = "ログイン中";
+    const profile = await liff.getProfile();
+    userId = profile.userId;
 
+    makeSubjectButtons();
     await checkUser();
     await loadUndone();
+
+    document.getElementById("status").innerText = "準備完了";
   } catch (e) {
     document.getElementById("status").innerText = "初期化エラー";
     console.error(e);
   }
+}
+
+function makeSubjectButtons() {
+  const box = document.getElementById("subjects");
+  SUBJECT_LIST.forEach(s => {
+    const btn = document.createElement("button");
+    btn.innerText = s;
+    btn.onclick = () => selectSubject(s, btn);
+    box.appendChild(btn);
+  });
+}
+
+function selectSubject(subject, btn) {
+  selectedSubject = subject;
+  document.querySelectorAll(".subject-buttons button")
+    .forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
 }
 
 async function post(data) {
@@ -68,25 +151,25 @@ async function checkUser() {
 }
 
 async function addHomework() {
-  const subject = subject.value;
   const text = document.getElementById("text").value;
   const date = document.getElementById("date").value;
 
-  if (!subject || !text || !date) {
-    alert("全部入力してください");
+  if (!selectedSubject || !text || !date) {
+    alert("教科・内容・日付をすべて選んでください");
     return;
   }
 
   await post({
     action: "addHomework",
     userId,
-    subject,
+    subject: selectedSubject,
     text,
     date
   });
 
+  document.getElementById("text").value = "";
   await loadUndone();
-  alert("追加しました");
+  alert("宿題を追加しました");
 }
 
 async function loadUndone() {
@@ -98,17 +181,16 @@ async function loadUndone() {
   const list = document.getElementById("list");
   list.innerHTML = "";
 
-  res.forEach((t, i) => {
+  res.forEach(t => {
     const div = document.createElement("div");
     div.className = "hw";
-    div.innerHTML = `<label>
-      <input type="checkbox" value="${t}">
-      ${t}
-    </label>`;
+    div.innerHTML = `
+      <label>
+        <input type="checkbox" value="${t}">
+        ${t}
+      </label>`;
     list.appendChild(div);
   });
-
-  document.getElementById("status").innerText = "準備完了";
 }
 
 async function doneHomework() {
@@ -116,7 +198,7 @@ async function doneHomework() {
     .map(c => c.value);
 
   if (checked.length === 0) {
-    alert("選択してください");
+    alert("完了する宿題を選択してください");
     return;
   }
 
@@ -127,10 +209,8 @@ async function doneHomework() {
   });
 
   await loadUndone();
-  alert("完了にしました");
+  alert("完了しました");
 }
-
-init();
 </script>
 </body>
 </html>
