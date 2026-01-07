@@ -1,43 +1,56 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <title>完了登録</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="style.css">
+
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script src="liff.js"></script>
+  <script src="js/liff.js"></script>
+  <script src="js/done.js"></script>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 16px;
+      background: #fafafa;
+    }
+    h2 { text-align: center; }
+    .item {
+      background: white;
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      animation: fadeIn 0.3s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; }
+    }
+    .submit {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      font-size: 18px;
+      background: #ff5722;
+      color: white;
+      border: none;
+      border-radius: 8px;
+    }
+  </style>
 </head>
+
 <body>
+  <h2>✅ 完了登録</h2>
 
-<div class="card fade-in">
-  <h1>✅ 宿題完了</h1>
-  <form id="list"></form>
-  <button id="doneBtn" class="primary">完了にする</button>
-</div>
+  <div id="list"></div>
 
-<script>
-async function main() {
-  await liffInit();
-  const userId = getUserId();
+  <button class="submit" onclick="submitDone()">完了にする</button>
 
-  const undone = await api("getUndoneHomework", { userId });
-
-  const form = document.getElementById("list");
-  undone.forEach(t => {
-    const label = document.createElement("label");
-    label.innerHTML = `<input type="checkbox" value="${t}"> ${t}`;
-    form.appendChild(label);
-  });
-
-  document.getElementById("doneBtn").onclick = async () => {
-    const done = [...document.querySelectorAll("input:checked")].map(x => x.value);
-    await api("doneHomework", { userId, doneList: done });
-    closeLiff();
-  };
-}
-main();
-</script>
+  <script>
+    initLIFF("done");
+  </script>
 </body>
 </html>
 
