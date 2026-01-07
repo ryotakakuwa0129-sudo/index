@@ -27,9 +27,7 @@ async function initLIFF(pageName) {
       liff.login();
       return;
     }
-
-  const idToken = liff.getDecodedIDToken();
-　const userId = idToken.sub;
+    
 
     window.APP.userId = userId;
     console.log("userId:", userId);
