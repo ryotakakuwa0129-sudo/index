@@ -4,10 +4,16 @@
 const LIFF_ID = "あなたのLIFF_ID";
 const GAS_URL = "あなたのGAS_WebApp_URL";
 
+// グローバル共有（他JSから使用）
+window.APP = {
+  userId: null,
+  registered: false
+};
+
 // =====================
-// LIFF 初期化
+// LIFF 初期化 & 登録判定
 // =====================
-async function initLIFF() {
+async function initLIFF(pageName) {
   try {
     await liff.init({ liffId: LIFF_ID });
 
@@ -19,41 +25,47 @@ async function initLIFF() {
     const profile = await liff.getProfile();
     const userId = profile.userId;
 
-    // 今開いているページ名
-    const currentPage = location.pathname.split("/").pop();
+    window.APP.userId = userId;
 
-    // 未登録チェック
+    // ---- 登録判定 ----
     const res = await fetch(GAS_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        mode: "check",
+        action: "checkUser",
         userId: userId
       })
     });
 
     const result = await res.json();
+    window.APP.registered = result.registered;
 
-    // ---------- 未登録 ----------
-    if (!result.registered) {
-      // register.html 以外なら登録画面へ
-      if (currentPage !== "register.html") {
-        location.replace("register.html");
-      }
+    // ---- ページ制御 ----
+    if (!result.registered && pageName !== "register") {
+      // 未登録 → 強制登録ページ
+      location.replace("register.html");
       return;
     }
 
-    // ---------- 登録済 ----------
-    // register.html に居たら閉じる or 移動
-    if (currentPage === "register.html") {
+    if (result.registered && pageName === "register") {
+      // 登録済で登録画面 → 自動クローズ
       liff.closeWindow();
+      return;
     }
 
-  } catch (err) {
-    console.error("LIFF初期化エラー", err);
-    alert("システムエラーが発生しました。もう一度開き直してください。");
+    // ---- ページ別初期化 ----
+    if (pageName === "add" && window.initAddPage) {
+      window.initAddPage();
+    }
+
+    if (pageName === "done" && window.initDonePage) {
+      window.initDonePage();
+    }
+
+  } catch (e) {
+    console.error(e);
+    alert("エラーが発生しました。LINEから再度開いてください。");
   }
 }
-
 
 
