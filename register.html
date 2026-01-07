@@ -1,28 +1,27 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>ユーザー登録</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <title>ユーザー登録</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="card slide-up">
+  <h2>👤 初回登録</h2>
+  <p>このLINEアカウントを登録します</p>
+  <button id="reg">登録する</button>
+
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="liff.js"></script>
-</head>
-<body>
-<div class="container">
-  <h1>ユーザー登録</h1>
-  <p>下のボタンを押して登録してください。</p>
-  <button id="registerBtn">登録する</button>
-  <p id="status"></p>
-</div>
+<script src="api.js"></script>
 <script>
-document.getElementById('registerBtn').addEventListener('click', async () => {
-  const userId = await getLiffUserId();
-  const res = await liffApiCall({ action: 'register', userId });
-  if (res.ok) {
-    document.getElementById('status').innerText = '登録完了！この画面は閉じます…';
-    setTimeout(() => liff.closeWindow(), 1500);
-  }
-});
+(async()=>{
+  await initLiff();
+  document.getElementById("reg").onclick = async ()=>{
+    await api("register",{userId:getUserId()});
+    location.href="done.html";
+  };
+})();
 </script>
 </body>
 </html>
+
