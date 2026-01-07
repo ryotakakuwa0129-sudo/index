@@ -1,39 +1,43 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<title>完了登録</title>
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="animation.css">
+  <meta charset="UTF-8">
+  <title>完了登録</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="liff.js"></script>
 </head>
-<body class="card fade-in">
-<h2>✅ 宿題完了</h2>
-<form id="list"></form>
-<button id="done">完了登録</button>
+<body>
 
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="liff.js"></script>
-<script src="api.js"></script>
+<div class="card fade-in">
+  <h1>✅ 宿題完了</h1>
+  <form id="list"></form>
+  <button id="doneBtn" class="primary">完了にする</button>
+</div>
+
 <script>
-(async()=>{
-  await initLiff();
+async function main() {
+  await liffInit();
   const userId = getUserId();
-  const list = await api("getUndoneHomework",{userId});
+
+  const undone = await api("getUndoneHomework", { userId });
 
   const form = document.getElementById("list");
-  list.forEach(t=>{
-    const l=document.createElement("label");
-    l.innerHTML=`<input type="checkbox" value="${t}"> ${t}`;
-    form.appendChild(l);
+  undone.forEach(t => {
+    const label = document.createElement("label");
+    label.innerHTML = `<input type="checkbox" value="${t}"> ${t}`;
+    form.appendChild(label);
   });
 
-  document.getElementById("done").onclick=async()=>{
-    const done=[...form.querySelectorAll("input:checked")].map(x=>x.value);
-    await api("doneHomework",{userId,doneList:done});
-    location.reload();
+  document.getElementById("doneBtn").onclick = async () => {
+    const done = [...document.querySelectorAll("input:checked")].map(x => x.value);
+    await api("doneHomework", { userId, doneList: done });
+    closeLiff();
   };
-
-})();
+}
+main();
 </script>
 </body>
 </html>
+
