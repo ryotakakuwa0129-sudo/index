@@ -1,33 +1,60 @@
-body {
-  font-family: system-ui;
-  background: linear-gradient(135deg,#4facfe,#00f2fe);
-  min-height:100vh;
-  margin:0;
-  display:flex;
-  justify-content:center;
-  align-items:center;
+let undoneList = [];
+
+async function initDonePage() {
+  const res = await fetch(GAS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "getUndoneHomework",
+      userId: APP.userId
+    })
+  });
+
+  undoneList = await res.json();
+  renderList();
 }
 
-.card {
-  background:white;
-  padding:24px;
-  border-radius:16px;
-  width:90%;
-  max-width:420px;
-  box-shadow:0 10px 30px rgba(0,0,0,.2);
+function renderList() {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  undoneList.forEach(t => {
+    const div = document.createElement("div");
+    div.className = "item";
+
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.value = t;
+
+    const label = document.createElement("span");
+    label.textContent = t;
+    label.style.marginLeft = "8px";
+
+    div.appendChild(cb);
+    div.appendChild(label);
+    list.appendChild(div);
+  });
 }
 
-button {
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:12px;
-  background:#06c755;
-  color:white;
-  font-size:16px;
-}
+async function submitDone() {
+  const checked = Array.from(
+    document.querySelectorAll("input[type=checkbox]:checked")
+  ).map(cb => cb.value);
 
-label {
-  display:block;
-  margin:8px 0;
+  if (checked.length === 0) {
+    alert("1つ以上選択してください");
+    return;
+  }
+
+  await fetch(GAS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "doneHomework",
+      userId: APP.userId,
+      doneList: checked
+    })
+  });
+
+  liff.closeWindow();
 }
