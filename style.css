@@ -1,38 +1,33 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<title>完了登録</title>
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="animation.css">
-</head>
-<body class="card fade-in">
-<h2>✅ 宿題完了</h2>
-<form id="list"></form>
-<button id="done">完了登録</button>
+body {
+  font-family: system-ui;
+  background: linear-gradient(135deg,#4facfe,#00f2fe);
+  min-height:100vh;
+  margin:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
 
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="liff.js"></script>
-<script src="api.js"></script>
-<script>
-(async()=>{
-  await initLiff();
-  const userId = getUserId();
-  const list = await api("getUndoneHomework",{userId});
+.card {
+  background:white;
+  padding:24px;
+  border-radius:16px;
+  width:90%;
+  max-width:420px;
+  box-shadow:0 10px 30px rgba(0,0,0,.2);
+}
 
-  const form = document.getElementById("list");
-  list.forEach(t=>{
-    const l=document.createElement("label");
-    l.innerHTML=`<input type="checkbox" value="${t}"> ${t}`;
-    form.appendChild(l);
-  });
+button {
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  background:#06c755;
+  color:white;
+  font-size:16px;
+}
 
-  document.getElementById("done").onclick=async()=>{
-    const done=[...form.querySelectorAll("input:checked")].map(x=>x.value);
-    await api("doneHomework",{userId,doneList:done});
-    location.reload();
-  };
-})();
-</script>
-</body>
-</html>
+label {
+  display:block;
+  margin:8px 0;
+}
