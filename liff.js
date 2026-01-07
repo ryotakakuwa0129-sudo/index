@@ -5,7 +5,7 @@ const LIFF_ID = "2008725002-jHJsEKRx";
 const GAS_URL = "https://script.google.com/macros/s/AKfycby0tjXYVUWyPRwqs7r7PwJrrslfTCdZIeQmFwwT1JUfMF9N4a6XwXtgvMz-JDIzIt_mxQ/exec";
 
 // =====================
-// グローバル共有（他JSから使用）
+// グローバル共有
 // =====================
 window.APP = {
   userId: null,
@@ -27,7 +27,12 @@ async function initLIFF(pageName) {
       liff.login();
       return;
     }
-    
+
+    // =====================
+    // userId 取得（必須）
+    // =====================
+    const idToken = liff.getDecodedIDToken();
+    const userId = idToken.sub;
 
     window.APP.userId = userId;
     console.log("userId:", userId);
@@ -44,17 +49,14 @@ async function initLIFF(pageName) {
       })
     });
 
-    console.log("GAS status:", res.status);
-
-    const raw = await res.text();   // ★重要
+    const raw = await res.text();
     console.log("GAS raw response:", raw);
 
     let result;
     try {
       result = JSON.parse(raw);
-    } catch (err) {
-      console.error("JSON parse error", err);
-      alert("サーバー応答エラー");
+    } catch {
+      alert("GASの応答が不正です");
       return;
     }
 
@@ -62,16 +64,24 @@ async function initLIFF(pageName) {
     console.log("registered:", window.APP.registered);
 
     // =====================
-    // ページ制御
+    // index 分岐（★ここが正解）
+    // =====================
+    if (pageName === "index") {
+      location.replace(
+        window.APP.registered ? "done.html" : "register.html"
+      );
+      return;
+    }
+
+    // =====================
+    // register ページ制御
     // =====================
     if (!window.APP.registered && pageName !== "register") {
-      console.log("未登録 → register.html");
       location.replace("register.html");
       return;
     }
 
     if (window.APP.registered && pageName === "register") {
-      console.log("登録済 → LIFF close");
       liff.closeWindow();
       return;
     }
@@ -80,35 +90,18 @@ async function initLIFF(pageName) {
     // ページ別初期化
     // =====================
     if (pageName === "add" && typeof window.initAddPage === "function") {
-      console.log("init add page");
       window.initAddPage();
     }
 
     if (pageName === "done" && typeof window.initDonePage === "function") {
-      console.log("init done page");
       window.initDonePage();
     }
-    
 
     console.log("LIFF init finished");
 
   } catch (e) {
-    console.error("LIFF ERROR", e);
-    alert("エラーが発生しました。LINEから再度開いてください。");
+    console.error(e);
+    alert("LINEから開き直してください");
   }
 }
-
-if (pageName === "index") {
-  location.replace(
-    window.APP.registered ? "done.html" : "register.html"
-  );
-  return;
-}
-
-
-// =====================
-// 自動実行（HTML側で pageName 指定）
-// =====================
-// 例：<script>initLIFF("add")</script>
-
 
