@@ -2,7 +2,7 @@
 // 設定
 // =====================
 const LIFF_ID = "2008725002-jHJsEKRx";
-const GAS_URL = "https://script.google.com/macros/s/AKfycbz910FJbvEKdMV-8dEGncfx2YocZHmNVeuyZHRA26c6SmqEaBEgPzwURfl1fQonvpTbpQ/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycby0tjXYVUWyPRwqs7r7PwJrrslfTCdZIeQmFwwT1JUfMF9N4a6XwXtgvMz-JDIzIt_mxQ/exec";
 
 // =====================
 // グローバル共有（他JSから使用）
