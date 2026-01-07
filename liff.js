@@ -28,8 +28,8 @@ async function initLIFF(pageName) {
       return;
     }
 
-    const profile = await liff.getProfile();
-    const userId = profile.userId;
+  const idToken = liff.getDecodedIDToken();
+　const userId = idToken.sub;
 
     window.APP.userId = userId;
     console.log("userId:", userId);
