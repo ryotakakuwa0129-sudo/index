@@ -1,34 +1,30 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <title>ユーザー登録</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="style.css">
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script src="liff.js"></script>
+  <script src="js/liff.js"></script>
 </head>
-<body class="center">
+<body>
+  <h2>初回登録</h2>
+  <button id="registerBtn">登録する</button>
 
-  <div class="card fade-in">
-    <h1>📘 宿題管理 登録</h1>
-    <p>初回のみ登録が必要です</p>
+  <script>
+    initLIFF("register");
 
-    <button id="registerBtn" class="primary">登録する</button>
-  </div>
+    document.getElementById("registerBtn").onclick = async () => {
+      await fetch(GAS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "register",
+          userId: APP.userId
+        })
+      });
 
-<script>
-async function main() {
-  await liffInit();
-
-  document.getElementById("registerBtn").onclick = async () => {
-    await api("register", { userId: getUserId() });
-    document.body.innerHTML = "<h2>登録完了しました</h2>";
-    closeLiff(1200);
-  };
-}
-main();
-</script>
+      liff.closeWindow();
+    };
+  </script>
 </body>
 </html>
-
