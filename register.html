@@ -1,27 +1,33 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <title>ユーザー登録</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="style.css">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="liff.js"></script>
 </head>
-<body class="card slide-up">
-  <h2>👤 初回登録</h2>
-  <p>このLINEアカウントを登録します</p>
-  <button id="reg">登録する</button>
+<body class="center">
 
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="liff.js"></script>
-<script src="api.js"></script>
+  <div class="card fade-in">
+    <h1>📘 宿題管理 登録</h1>
+    <p>初回のみ登録が必要です</p>
+
+    <button id="registerBtn" class="primary">登録する</button>
+  </div>
+
 <script>
-(async()=>{
-  await initLiff();
-  document.getElementById("reg").onclick = async ()=>{
-    await api("register",{userId:getUserId()});
-    location.href="done.html";
-    closeLiff(); // 自動クローズ
+async function main() {
+  await liffInit();
+
+  document.getElementById("registerBtn").onclick = async () => {
+    await api("register", { userId: getUserId() });
+    document.body.innerHTML = "<h2>登録完了しました</h2>";
+    closeLiff(1200);
   };
-})();
+}
+main();
 </script>
 </body>
 </html>
