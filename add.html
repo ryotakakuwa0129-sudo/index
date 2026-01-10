@@ -3,109 +3,51 @@
 <head>
 <meta charset="utf-8">
 <title>宿題追加</title>
+<link rel="stylesheet" href="style.css">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="liff.js"></script>
-
-<style>
-body{
-  font-family: system-ui;
-  background: linear-gradient(135deg,#4facfe,#00f2fe);
-  min-height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-.card{
-  background:#fff;
-  width:92%;
-  max-width:420px;
-  border-radius:20px;
-  padding:20px;
-  box-shadow:0 15px 40px rgba(0,0,0,.25);
-  animation:fade .4s ease;
-}
-@keyframes fade{from{opacity:0;transform:translateY(20px)}}
-h2{text-align:center;margin-bottom:10px}
-.subjects{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:8px;
-}
-.subjects button{
-  padding:10px;
-  border:none;
-  border-radius:10px;
-  background:#f1f3f5;
-  font-weight:bold;
-}
-.subjects button.active{
-  background:#4facfe;
-  color:#fff;
-}
-input,textarea{
-  width:100%;
-  margin-top:10px;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #ddd;
-}
-button.save{
-  margin-top:15px;
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:14px;
-  background:#4facfe;
-  color:#fff;
-  font-size:16px;
-}
-</style>
 </head>
-
 <body>
-<div class="card">
-<h2>📘 宿題追加</h2>
+<div class="container">
+  <h1>宿題追加</h1>
+  <div class="card">
+    <div class="subjects" id="subjects"></div>
 
-<div class="subjects" id="subjects"></div>
+    <input id="title" placeholder="内容" style="width:100%;margin-top:15px">
+    <input id="date" type="date" style="width:100%;margin-top:10px">
 
-<input id="subject" readonly placeholder="教科">
-<textarea id="text" placeholder="宿題内容"></textarea>
-
-<!-- ★ 期限選択（これが無かった） -->
-<input id="date" type="date">
-
-<button class="save" onclick="save()">保存</button>
+    <button id="save">保存</button>
+  </div>
 </div>
 
+<script src="liff.js"></script>
+<script src="api.js"></script>
 <script>
-const SUBJECTS = ["国語","数学","英語","理科","社会","保健体育","美術","音楽","その他"];
+const SUBJECTS = ["国語","数学","理科","社会","英語","保体","美術","音楽","その他"];
+let subject = "";
 
-initLIFF("add");
+const box = document.getElementById("subjects");
+SUBJECTS.forEach(s=>{
+  const d = document.createElement("div");
+  d.className = "subject";
+  d.textContent = s;
+  d.onclick = ()=>{
+    document.querySelectorAll(".subject").forEach(x=>x.classList.remove("active"));
+    d.classList.add("active");
+    subject = s;
+  };
+  box.appendChild(d);
+});
 
-function initAdd(){
-  subjects.innerHTML="";
-  SUBJECTS.forEach(s=>{
-    const b=document.createElement("button");
-    b.textContent=s;
-    b.onclick=()=>select(s,b);
-    subjects.appendChild(b);
-  });
-}
-
-function select(s,btn){
-  subject.value=s;
-  [...subjects.children].forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
-}
-
-async function save(){
+document.getElementById("save").onclick = async()=>{
   await api("addHomework",{
-    subject:subject.value,
-    text:text.value,
-    date:date.value
+    userId: window.USER_ID,
+    subject,
+    title: title.value,
+    date: date.value
   });
-  alert("保存しました");
-}
+  location.href="done.html";
+};
 </script>
 </body>
 </html>
+
