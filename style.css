@@ -1,60 +1,68 @@
-body {
-  font-family: "Segoe UI", system-ui;
-  background: linear-gradient(135deg,#6dd5fa,#ffffff);
-  margin: 0;
-  padding: 0;
+body{
+  margin:0;
+  font-family:system-ui;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
 }
 
-.container {
-  max-width: 420px;
-  margin: auto;
-  padding: 20px;
+.card{
+  background:#fff;
+  width:90%;
+  max-width:420px;
+  padding:28px;
+  border-radius:24px;
+  box-shadow:0 20px 40px rgba(0,0,0,.25);
+  animation:pop .5s;
 }
 
-h1 {
-  text-align: center;
-  margin-bottom: 20px;
+@keyframes pop{
+  from{transform:scale(.9);opacity:0}
+  to{transform:scale(1);opacity:1}
 }
 
-.card {
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.15);
-  animation: fade .4s ease;
+h1{text-align:center}
+
+input{
+  width:100%;
+  padding:14px;
+  margin:10px 0;
+  border-radius:14px;
+  border:1px solid #ccc;
 }
 
-@keyframes fade {
-  from { opacity:0; transform:translateY(10px);}
-  to { opacity:1; transform:none;}
+button{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:16px;
+  background:#4f46e5;
+  color:#fff;
+  font-size:16px;
+  font-weight:bold;
 }
 
-.subjects {
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  gap: 10px;
+.subjects{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
 }
 
-.subject {
-  padding: 10px;
-  border-radius: 12px;
-  text-align: center;
-  background: #f0f0f0;
-  cursor: pointer;
+.subjects button{
+  background:#e5e7eb;
+  color:#000;
 }
 
-.subject.active {
-  background: #4facfe;
-  color: white;
+.subjects button.on{
+  background:#4f46e5;
+  color:#fff;
 }
 
-button {
-  width: 100%;
-  padding: 14px;
-  margin-top: 20px;
-  border: none;
-  border-radius: 12px;
-  background: linear-gradient(135deg,#667eea,#764ba2);
-  color: white;
-  font-size: 16px;
+.check{
+  display:flex;
+  gap:10px;
+  padding:10px;
 }
+
