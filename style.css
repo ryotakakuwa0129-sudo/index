@@ -1,84 +1,76 @@
 body {
+  font-family: system-ui;
   margin: 0;
-  font-family: "Segoe UI", system-ui, sans-serif;
-  background: linear-gradient(135deg, #6a85ff, #88e0ef);
-  color: #333;
+  background: #f5f6fa;
 }
 
-.center {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+header {
+  padding: 16px;
+  font-size: 22px;
+  font-weight: bold;
+  background: #4f46e5;
+  color: #fff;
+  text-align: center;
 }
 
-.page {
-  padding: 24px;
-  animation: fade 0.4s ease;
-}
-
-.hidden {
+section {
   display: none;
+  padding: 20px;
+  animation: fade .3s ease;
 }
 
-h1 {
-  margin-bottom: 16px;
+@keyframes fade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
 }
 
-.primary {
+h2 {
+  margin-bottom: 10px;
+}
+
+input {
   width: 100%;
-  padding: 14px;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+button.primary {
+  width: 100%;
+  padding: 12px;
   border: none;
-  border-radius: 14px;
-  background: #4f7cff;
+  border-radius: 12px;
+  background: #4f46e5;
   color: #fff;
   font-size: 16px;
-  margin-top: 20px;
 }
 
 .subjects {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .subjects button {
   padding: 10px;
   border-radius: 10px;
-  border: none;
-  background: #eee;
+  border: 1px solid #aaa;
+  background: #fff;
 }
 
 .subjects button.active {
-  background: #4f7cff;
+  background: #4f46e5;
   color: #fff;
 }
 
-textarea,
-input[type="date"] {
-  width: 100%;
-  padding: 12px;
+.check {
+  display: block;
+  padding: 10px;
+  margin: 6px 0;
+  background: #fff;
   border-radius: 10px;
-  border: none;
-  margin-top: 14px;
 }
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #ddd;
-  border-top: 4px solid #4f7cff;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes fade {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 
