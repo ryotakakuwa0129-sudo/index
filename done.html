@@ -2,68 +2,28 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<title>完了管理</title>
+<title>一覧</title>
+<link rel="stylesheet" href="style.css">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="liff.js"></script>
-
-<style>
-body{
-  font-family:system-ui;
-  background:#f1f3f5;
-}
-.card{
-  margin:20px;
-  background:#fff;
-  padding:20px;
-  border-radius:16px;
-}
-label{
-  display:flex;
-  gap:10px;
-  padding:10px;
-  border-bottom:1px solid #eee;
-}
-button{
-  margin:20px;
-  width:calc(100% - 40px);
-  padding:14px;
-  border:none;
-  border-radius:14px;
-  background:#00c853;
-  color:#fff;
-  font-size:16px;
-}
-</style>
 </head>
-
 <body>
+<div class="container">
+<h1>宿題一覧</h1>
 <div class="card" id="list"></div>
-<button onclick="done()">完了登録</button>
+</div>
 
+<script src="liff.js"></script>
+<script src="api.js"></script>
 <script>
-let undone=[];
-
-initLIFF("done");
-
-async function initDone(){
-  undone = await api("getUndoneHomework");
-  list.innerHTML="";
-  undone.forEach((h,i)=>{
-    list.innerHTML+=`
-      <label>
-        <input type="checkbox" value="${i}">
-        ${h}
-      </label>
-    `;
+(async()=>{
+  const r = await api("getHomework",{userId:window.USER_ID});
+  const list = document.getElementById("list");
+  r.items.forEach(i=>{
+    const d = document.createElement("div");
+    d.textContent = `${i.subject}｜${i.title}（${i.date}）`;
+    list.appendChild(d);
   });
-}
-
-async function done(){
-  const d=[...document.querySelectorAll("input:checked")]
-    .map(c=>undone[c.value]);
-  await api("doneHomework",{doneList:d});
-  initDone();
-}
+})();
 </script>
 </body>
 </html>
