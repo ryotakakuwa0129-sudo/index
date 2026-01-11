@@ -17,36 +17,40 @@
   <a href="?page=register">登録</a>
 </nav>
 
-<!-- 登録 -->
 <section id="page-register" class="page">
   <h2>ユーザー登録</h2>
-  <p>LINEアカウントと連携します</p>
   <button id="registerBtn">登録する</button>
 </section>
 
-<!-- 未完了 -->
 <section id="page-list" class="page">
   <h2>未完了宿題</h2>
   <div id="list"></div>
   <button id="doneBtn">完了にする</button>
 </section>
 
-<!-- 追加 -->
 <section id="page-add" class="page">
   <h2>宿題追加</h2>
 
   <input id="text" placeholder="宿題内容">
 
+  <!-- ★ GAS準拠 教科 -->
   <div class="subjects">
-    <button>国語</button><button>数学</button><button>英語</button>
-    <button>理科</button><button>社会</button><button>音楽</button>
-    <button>美術</button><button>保体</button><button>その他</button>
+    <button>国語</button>
+    <button>数学</button>
+    <button>理科</button>
+    <button>社会</button>
+    <button>英語</button>
+    <button>音楽</button>
+    <button>美術</button>
+    <button>保体</button>
+    <button>その他</button>
   </div>
 
   <input type="date" id="date">
   <button id="addBtn">追加</button>
 </section>
 
+<script src="api.js"></script>
 <script src="liff.js"></script>
 </body>
 </html>
