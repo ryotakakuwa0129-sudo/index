@@ -1,54 +1,44 @@
-body {
-  background:#eaf3ff;
-  font-family:system-ui;
+body{
+  background:#eef3ff;
+  font-family:sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
 }
 
-.card {
-  max-width:420px;
-  margin:30px auto;
-  padding:20px;
+.card{
   background:#fff;
+  padding:20px;
   border-radius:16px;
-  box-shadow:0 10px 30px rgba(0,0,0,.1);
-  animation:fade .4s;
+  width:100%;
+  max-width:420px;
+  box-shadow:0 8px 20px rgba(0,0,0,.1);
 }
 
-h1 { text-align:center; color:#1a73e8; }
+.center{text-align:center}
 
-textarea,input[type=date] {
+.menu-btn,button{
+  display:block;
   width:100%;
   margin:10px 0;
-  padding:10px;
-  border-radius:8px;
-  border:1px solid #ccc;
-}
-
-.primary {
-  width:100%;
-  padding:12px;
-  background:#1a73e8;
+  padding:14px;
+  border-radius:12px;
+  background:#2563eb;
   color:#fff;
   border:none;
-  border-radius:10px;
-  font-size:16px;
+  font-weight:bold;
+  text-decoration:none;
 }
 
-.subjects button {
-  margin:4px;
-  padding:8px 12px;
-  border-radius:20px;
-  border:1px solid #1a73e8;
-  background:#fff;
-  color:#1a73e8;
+.subjects{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
 }
 
-.check {
-  display:block;
-  padding:8px;
+.subjects button.active{
+  background:#06c755;
 }
 
-@keyframes fade {
-  from{opacity:0;transform:translateY(10px)}
-  to{opacity:1}
-}
 
