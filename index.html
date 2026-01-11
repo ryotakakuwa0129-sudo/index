@@ -1,54 +1,13 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <title>宿題管理</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="style.css">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
-
-<header>Homework Manager</header>
-
-<nav>
-  <a href="?page=list">未完了</a>
-  <a href="?page=add">追加</a>
-  <a href="?page=register">登録</a>
-</nav>
-
-<section id="page-register" class="page">
-  <h2>ユーザー登録</h2>
-  <button id="registerBtn">登録する</button>
-</section>
-
-<section id="page-list" class="page">
-  <h2>未完了宿題</h2>
-  <div id="list"></div>
-  <button id="doneBtn">完了にする</button>
-</section>
-
-<section id="page-add" class="page">
-  <h2>宿題追加</h2>
-
-  <input id="text" placeholder="宿題内容">
-
-  <!-- ★ GAS準拠 教科 -->
-  <div class="subjects">
-    <button>国語</button>
-    <button>数学</button>
-    <button>理科</button>
-    <button>社会</button>
-    <button>英語</button>
-    <button>音楽</button>
-    <button>美術</button>
-    <button>保体</button>
-    <button>その他</button>
-  </div>
-
-  <input type="date" id="date">
-  <button id="addBtn">追加</button>
-</section>
+<div id="app"></div>
 
 <script src="api.js"></script>
 <script src="liff.js"></script>
