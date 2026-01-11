@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="style.css">
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script src="api.js"></script>
+</head>
+
+<body>
+<div class="card">
+<h2>✅ 完了登録</h2>
+<div id="list"></div>
+<button onclick="done()">完了</button>
+</div>
+
+<script>
+let userId;
+
+async function init(){
+  await liff.init({ liffId:"LIFF_ID" });
+  userId=await getUserId();
+  const list=await post({action:"getUndoneHomework",userId});
+  const box=document.getElementById("list");
+
+  list.forEach(v=>{
+    const l=document.createElement("label");
+    l.innerHTML=`<input type="checkbox" value="${v}"> ${v}`;
+    box.appendChild(l);
+  });
+}
+init();
+
+async function done(){
+  const checked=[...document.querySelectorAll("input:checked")].map(x=>x.value);
+  await post({action:"doneHomework",userId,doneList:checked});
+  liff.closeWindow();
+}
+</script>
+</body>
+</html>
