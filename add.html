@@ -1,50 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
 <meta charset="UTF-8">
+<title>宿題追加</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="api.js"></script>
 </head>
-
 <body>
-<div class="card">
-<h2>➕ 宿題追加</h2>
-
-<div class="subjects" id="subjects"></div>
-
-<textarea id="text" placeholder="宿題内容"></textarea>
-<input type="date" id="date">
-
-<button onclick="send()">登録</button>
-</div>
+<div class="container" id="app"></div>
 
 <script>
-const SUBJECTS=["国語","数学","理科","社会","英語","音楽","美術","保体","その他"];
-let subject=null;
+const GAS_URL = "YOUR_GAS_URL";
 
-liff.init({ liffId:"LIFF_ID" });
-const box=document.getElementById("subjects");
-
-SUBJECTS.forEach(s=>{
-  const b=document.createElement("button");
-  b.innerText=s;
-  b.onclick=()=>{
-    document.querySelectorAll(".subjects button").forEach(x=>x.classList.remove("active"));
-    b.classList.add("active");
-    subject=s;
-  };
-  box.appendChild(b);
-});
-
-async function send(){
-  await post({
-    action:"addHomework",
-    subject,
-    text: text.value,
-    date: date.value
+async function post(data){
+  const res = await fetch(GAS_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify(data)
   });
-  liff.closeWindow();
+  return res.json();
+}
+
+async function getUserId(){
+  const p = await liff.getProfile();
+  return p.userId;
+}
+
+liff.init({ liffId:"YOUR_LIFF_ID" }).then(renderAdd);
+
+function renderAdd(){
+  document.getElementById("app").innerHTML = `
+    <h2>宿題追加</h2>
+
+    <div class="subjects">
+      ${["国語","数学","理科","社会","英語","音楽","美術","保体","その他"]
+        .map(s=>`<button class="sub">${s}</button>`).join("")}
+    </div>
+
+    <input id="text" placeholder="宿題内容">
+    <input id="date" type="date">
+    <button id="add">追加</button>
+  `;
+
+  let subject = "";
+
+  document.querySelectorAll(".sub").forEach(b=>{
+    b.onclick = ()=>{
+      document.querySelectorAll(".sub").forEach(x=>x.classList.remove("active"));
+      b.classList.add("active");
+      subject = b.textContent;
+    };
+  });
+
+  document.getElementById("add").onclick = async ()=>{
+    const text = document.getElementById("text").value;
+    const dateRaw = document.getElementById("date").value;
+    if(!subject || !text || !dateRaw) return;
+
+    const d = new Date(dateRaw);
+    const date = `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+
+    await post({ action:"addHomework", subject, text, date });
+    alert("宿題を追加しました！");
+    liff.closeWindow();
+  };
 }
 </script>
 </body>
