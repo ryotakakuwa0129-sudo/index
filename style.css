@@ -1,61 +1,168 @@
-body{
-  background:linear-gradient(135deg,#eaf2ff,#f8fbff);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-  font-family:sans-serif;
+// =====================
+// 初期化
+// =====================
+liff
+  .init({ liffId: LIFF_ID })
+  .then(route)
+  .catch(() => {
+    document.getElementById("app").innerHTML = "LIFF初期化失敗";
+  });
+
+// =====================
+// ルーティング
+// =====================
+function route() {
+  const page = new URLSearchParams(location.search).get("page");
+
+  if (page === "add") renderAdd();
+  else if (page === "done") renderDone();
+  else if (page === "register") renderRegister();
+  else renderMenu();
 }
 
-.card{
-  width:340px;
-  padding:20px;
-  border-radius:16px;
-  background:#fff;
-  text-align:center;
-  box-shadow:0 10px 30px rgba(0,0,0,.15);
+// =====================
+// トースト
+// =====================
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2000);
 }
 
-.menu-btn,button{
-  display:block;
-  width:100%;
-  margin:10px 0;
-  padding:12px;
-  border:none;
-  border-radius:12px;
-  background:#3b82f6;
-  color:#fff;
-  font-size:16px;
+// =====================
+// メニュー
+// =====================
+function renderMenu() {
+  app.innerHTML = `
+    <h2>📘 宿題管理</h2>
+    <a class="menu-btn" href="?page=add">➕ 宿題追加</a>
+    <a class="menu-btn" href="?page=done">✅ 完了登録</a>
+    <a class="menu-btn" href="?page=register">👤 ユーザー登録</a>
+  `;
 }
 
-.subjects{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:6px;
+// =====================
+// ユーザー登録
+// =====================
+function renderRegister() {
+  app.innerHTML = `
+    <h2>ユーザー登録</h2>
+    <button id="regBtn">登録する</button>
+  `;
+
+  document.getElementById("regBtn").onclick = async () => {
+    const userId = await getUserId();
+    await post({ action: "register", userId });
+    showToast("登録しました");
+    setTimeout(() => liff.closeWindow(), 1500);
+  };
 }
 
-.subjects button{
-  background:#e0e7ff;
-  color:#1e3a8a;
+// =====================
+// 宿題追加
+// =====================
+function renderAdd() {
+  const subjects = [
+    "国語",
+    "数学",
+    "理科",
+    "社会",
+    "英語",
+    "音楽",
+    "美術",
+    "保体",
+    "その他",
+  ];
+
+  app.innerHTML = `
+    <h2>宿題追加</h2>
+
+    <div class="subjects">
+      ${subjects.map((s) => `<button class="sub">${s}</button>`).join("")}
+    </div>
+
+    <input id="text" placeholder="宿題内容" />
+    <input id="date" type="date" />
+
+    <button id="addBtn">追加</button>
+  `;
+
+  let subject = "";
+
+  document.querySelectorAll(".sub").forEach((btn) => {
+    btn.onclick = () => {
+      document.querySelectorAll(".sub").forEach((b) =>
+        b.classList.remove("active")
+      );
+      btn.classList.add("active");
+      subject = btn.textContent;
+    };
+  });
+
+  document.getElementById("addBtn").onclick = async () => {
+    const text = document.getElementById("text").value;
+    const rawDate = document.getElementById("date").value;
+
+    if (!subject || !text || !rawDate) return;
+
+    const d = new Date(rawDate);
+    const date = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+
+    await post({ action: "addHomework", subject, text, date });
+
+    showToast("宿題を追加しました");
+    setTimeout(() => liff.closeWindow(), 1500);
+  };
 }
 
-.subjects button.active{
-  background:#22c55e;
-  color:#fff;
+// =====================
+// 完了登録（最重要）
+// =====================
+async function renderDone() {
+  app.innerHTML = `
+    <h2>完了登録</h2>
+    <div id="list"></div>
+    <button id="doneBtn">完了</button>
+  `;
+
+  const userId = await getUserId();
+
+  // ★ GAS：ユーザー進捗管理シート「3行目・改行区切り」
+  const undoneList = await post({
+    action: "getUndoneHomework",
+    userId,
+  });
+
+  const listDiv = document.getElementById("list");
+
+  listDiv.innerHTML = undoneList
+    .map(
+      (v) => `
+      <label class="check">
+        <input type="checkbox" value="${v}">
+        <span>${v}</span>
+      </label>
+    `
+    )
+    .join("");
+
+  document.getElementById("doneBtn").onclick = async () => {
+    const checked = [...document.querySelectorAll("input:checked")].map(
+      (i) => i.value
+    );
+
+    if (!checked.length) return;
+
+    await post({
+      action: "doneHomework",
+      userId,
+      doneList: checked,
+    });
+
+    showToast("完了しました！");
+    setTimeout(() => liff.closeWindow(), 1500);
+  };
 }
-
-.toast{
-  position:fixed;
-  bottom:40px;
-  background:#22c55e;
-  color:#fff;
-  padding:10px 20px;
-  border-radius:20px;
-  opacity:0;
-  transition:.3s;
-}
-
-.toast.show{opacity:1;}
-
 
 
