@@ -1,84 +1,64 @@
 body {
-  font-family: system-ui, sans-serif;
   background: #eaf3ff;
-  margin: 0;
+  font-family: sans-serif;
 }
 
-.container {
+.card {
   max-width: 420px;
   margin: 40px auto;
-  background: #fff;
-  padding: 24px;
+  padding: 20px;
+  background: white;
   border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 80, 200, 0.15);
+  box-shadow: 0 10px 30px rgba(0,0,0,.1);
   text-align: center;
 }
 
-h2 {
-  color: #2563eb;
-}
-
-.menu-btn,
-button {
+.btn {
   display: block;
-  width: 100%;
-  margin: 12px 0;
-  padding: 14px;
-  font-size: 16px;
-  border-radius: 12px;
-  border: none;
-  background: #2563eb;
+  margin: 10px 0;
+  padding: 12px;
+  background: #2f80ed;
   color: white;
+  border-radius: 10px;
   text-decoration: none;
+  border: none;
   cursor: pointer;
 }
 
 .subjects {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 6px;
+  margin-bottom: 10px;
 }
 
 .sub {
   flex: 1 1 30%;
-  background: #e0e7ff;
-  color: #1e3a8a;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #2f80ed;
+  background: white;
 }
 
 .sub.active {
-  background: #2563eb;
-  color: #fff;
+  background: #2f80ed;
+  color: white;
 }
 
 input {
   width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  border-radius: 10px;
-  border: 1px solid #c7d2fe;
+  padding: 10px;
+  margin: 6px 0;
 }
 
 .check {
-  display: flex;
-  align-items: center;
-  margin: 8px 0;
-  gap: 8px;
+  display: block;
+  text-align: left;
+  margin: 6px 0;
 }
 
-.toast {
-  position: fixed;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #2563eb;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 20px;
-  opacity: 0;
-  transition: 0.3s;
+.msg {
+  font-size: 18px;
+  color: #2f80ed;
 }
 
-.toast.show {
-  opacity: 1;
-}
