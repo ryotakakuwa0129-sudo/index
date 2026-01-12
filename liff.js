@@ -1,166 +1,154 @@
-// =====================
-// 初期化
-// =====================
-liff
-  .init({ liffId: LIFF_ID })
-  .then(route)
-  .catch(() => {
-    document.getElementById("app").innerHTML = "LIFF初期化失敗";
-  });
+const LIFF_ID = "あなたのLIFF_ID";
+const GAS_URL = "あなたのGAS_URL";
 
-// =====================
-// ルーティング
-// =====================
+/* ---------------- LIFF初期化 ---------------- */
+
+async function initLiff() {
+  await liff.init({ liffId: LIFF_ID });
+
+  if (!liff.isLoggedIn()) {
+    liff.login();
+    return;
+  }
+
+  if (!liff.isInClient()) {
+    alert("LINEアプリ内で開いてください");
+    throw new Error("Not in LINE");
+  }
+}
+
+/* ---------------- ユーザーID（安全版） ---------------- */
+
+function getUserId() {
+  const ctx = liff.getContext();
+  if (!ctx || !ctx.userId) {
+    alert("userIdが取得できません");
+    throw new Error("userId missing");
+  }
+  return ctx.userId;
+}
+
+/* ---------------- GAS通信（絶対に止まらない） ---------------- */
+
+async function post(data) {
+  try {
+    const res = await fetch(GAS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+
+    const text = await res.text();
+    return JSON.parse(text);
+  } catch (e) {
+    console.error("GAS通信エラー", e);
+    alert("通信エラーが発生しました");
+    throw e;
+  }
+}
+
+/* ---------------- ルーティング ---------------- */
+
 function route() {
   const page = new URLSearchParams(location.search).get("page");
-
   if (page === "add") renderAdd();
   else if (page === "done") renderDone();
   else if (page === "register") renderRegister();
   else renderMenu();
 }
 
-// =====================
-// トースト
-// =====================
-function showToast(msg) {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 2000);
-}
+/* ---------------- 画面 ---------------- */
 
-// =====================
-// メニュー
-// =====================
 function renderMenu() {
   app.innerHTML = `
     <h2>📘 宿題管理</h2>
-    <a class="menu-btn" href="?page=add">➕ 宿題追加</a>
-    <a class="menu-btn" href="?page=done">✅ 完了登録</a>
-    <a class="menu-btn" href="?page=register">👤 ユーザー登録</a>
+    <a href="?page=add">➕ 追加</a>
+    <a href="?page=done">✅ 完了</a>
+    <a href="?page=register">👤 登録</a>
   `;
 }
 
-// =====================
-// ユーザー登録
-// =====================
+/* ---------------- 登録 ---------------- */
+
 function renderRegister() {
   app.innerHTML = `
     <h2>ユーザー登録</h2>
-    <button id="regBtn">登録する</button>
+    <button id="reg">登録</button>
   `;
 
-  document.getElementById("regBtn").onclick = async () => {
-    const userId = await getUserId();
+  document.getElementById("reg").onclick = async () => {
+    const userId = getUserId();
     await post({ action: "register", userId });
-    showToast("登録しました");
-    setTimeout(() => liff.closeWindow(), 1500);
+    alert("登録完了");
+    liff.closeWindow();
   };
 }
 
-// =====================
-// 宿題追加
-// =====================
-function renderAdd() {
-  const subjects = [
-    "国語",
-    "数学",
-    "理科",
-    "社会",
-    "英語",
-    "音楽",
-    "美術",
-    "保体",
-    "その他",
-  ];
+/* ---------------- 宿題追加 ---------------- */
 
+function renderAdd() {
   app.innerHTML = `
     <h2>宿題追加</h2>
-
-    <div class="subjects">
-      ${subjects.map((s) => `<button class="sub">${s}</button>`).join("")}
-    </div>
-
-    <input id="text" placeholder="宿題内容" />
-    <input id="date" type="date" />
-
-    <button id="addBtn">追加</button>
+    <div id="subjects"></div>
+    <input id="text" placeholder="内容">
+    <input id="date" type="date">
+    <button id="add">追加</button>
   `;
 
+  const subjects = ["国語","数学","理科","社会","英語","音楽","美術","保体","その他"];
   let subject = "";
 
-  document.querySelectorAll(".sub").forEach((btn) => {
-    btn.onclick = () => {
-      document.querySelectorAll(".sub").forEach((b) =>
-        b.classList.remove("active")
-      );
-      btn.classList.add("active");
-      subject = btn.textContent;
+  document.getElementById("subjects").innerHTML =
+    subjects.map(s=>`<button class="sub">${s}</button>`).join("");
+
+  document.querySelectorAll(".sub").forEach(b=>{
+    b.onclick = ()=>{
+      document.querySelectorAll(".sub").forEach(x=>x.classList.remove("active"));
+      b.classList.add("active");
+      subject = b.textContent;
     };
   });
 
-  document.getElementById("addBtn").onclick = async () => {
-    const text = document.getElementById("text").value;
-    const rawDate = document.getElementById("date").value;
+  document.getElementById("add").onclick = async () => {
+    const text = text.value;
+    const date = date.value;
+    if (!subject || !text || !date) return alert("未入力あり");
 
-    if (!subject || !text || !rawDate) return;
-
-    const d = new Date(rawDate);
-    const date = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
-
-    await post({ action: "addHomework", subject, text, date });
-
-    showToast("宿題を追加しました");
-    setTimeout(() => liff.closeWindow(), 1500);
+    await post({ action:"addHomework", subject, text, date });
+    alert("追加完了");
+    liff.closeWindow();
   };
 }
 
-// =====================
-// 完了登録（最重要）
-// =====================
+/* ---------------- 完了登録 ---------------- */
+
 async function renderDone() {
-  app.innerHTML = `
-    <h2>完了登録</h2>
-    <div id="list"></div>
-    <button id="doneBtn">完了</button>
-  `;
+  app.innerHTML = `<h2>完了登録</h2><div id="list"></div><button id="done">完了</button>`;
 
-  const userId = await getUserId();
+  const userId = getUserId();
+  const list = await post({ action:"getUndoneHomework", userId });
 
-  // ★ GAS：ユーザー進捗管理シート「3行目・改行区切り」
-  const undoneList = await post({
-    action: "getUndoneHomework",
-    userId,
+  list.forEach(v=>{
+    listDiv.innerHTML += `
+      <label>
+        <input type="checkbox" value="${v}"> ${v}
+      </label><br>
+    `;
   });
 
-  const listDiv = document.getElementById("list");
-
-  listDiv.innerHTML = undoneList
-    .map(
-      (v) => `
-      <label class="check">
-        <input type="checkbox" value="${v}">
-        <span>${v}</span>
-      </label>
-    `
-    )
-    .join("");
-
-  document.getElementById("doneBtn").onclick = async () => {
-    const checked = [...document.querySelectorAll("input:checked")].map(
-      (i) => i.value
-    );
-
+  done.onclick = async ()=>{
+    const checked = [...document.querySelectorAll("input:checked")].map(i=>i.value);
     if (!checked.length) return;
 
-    await post({
-      action: "doneHomework",
-      userId,
-      doneList: checked,
-    });
-
-    showToast("完了しました！");
-    setTimeout(() => liff.closeWindow(), 1500);
+    await post({ action:"doneHomework", userId, doneList: checked });
+    alert("完了登録しました");
+    liff.closeWindow();
   };
 }
+
+/* ---------------- 起動 ---------------- */
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await initLiff();
+  route();
+});
